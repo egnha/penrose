@@ -25,7 +25,7 @@ import qualified Text.Megaparsec.Lexer as L
 -- Style AST
 
 -- | All geometric object types supported by Style so far.
-data StyObj = Ellip | Circle | Box | Dot | Arrow | NoShape | Color | Text | Curve | Auto
+data StyObj = Ellip | Circle | Box | Dot | Arrow | NoShape | Text | Curve | Auto
     deriving (Show)
 
 -- | A type frequently used in the module. A style object such as a 'Circle' has parameters like its radius attached to it. This is a tuple associating the object with its parameters. The latter map is the config (e.g. "radius = 5", or a computation, or some other expression).
@@ -89,12 +89,13 @@ data Expr
 -- Difficulty: the return type of each access might be different. What is a good way to resolve this?
 data BinaryOp = Access deriving (Show)
 
-data Color = RndColor | Colo
-          { r :: Float
-          , g :: Float
-          , b :: Float
-          , a :: Float }
-          deriving (Show)
+-- TODO: Color at the compiler level. Currently not used
+-- data Color = RndColor | Colo
+--           { r :: Float
+--           , g :: Float
+--           , b :: Float
+--           , a :: Float }
+--           deriving (Show)
 
 --------------------------------------------------------------------------------
 -- Style Parser
@@ -146,7 +147,7 @@ patterns = many pattern
 -- | parses the type of Style object
 styObj :: Parser StyObj
 styObj =
-       (rword "Color"   >> return Color)   <|>
+       -- (rword "Color"   >> return Color)   <|>
        (rword "None"    >> return NoShape) <|>
        (rword "Arrow"   >> return Arrow)   <|>
        (rword "Text"    >> return Text)    <|>
@@ -453,10 +454,11 @@ procObjFn varMap fns _ = fns -- TODO: avoid functions
 lookupVarMap :: String -> VarMap -> String
 lookupVarMap s varMap = case M.lookup s varMap of
     Just s' -> s'
-    Nothing -> case M.lookup s computationDict of
-               Just f -> trace ("found function named: " ++ s) $ s
-               Nothing -> s
-               -- TODO: there is a possibility of accessing unselected Substance variables here. As written here, we are assuming all ids from SUbstance are accessible in Style GLOBALLY. Is this okay?
+    Nothing -> s
+               --  case M.lookup s computationDict of
+               -- Just f -> trace ("found function named: " ++ s) $ s
+               -- Nothing -> s
+               -- TODO: there is a possibility of accessing unselected Substance variables here. As written here, we are assuming all ids from Substance are accessible in Style GLOBALLY. Is this okay?
                -- error $ "lookupVarMap: incorrect variable mapping from " ++ s ++ " or no computation"
 
 -- | Resolve a Style expression, which could be operations among expressions such as a chained dot-access for an attribute through a couple of layers of indirection (TODO: hackiest part of the compiler, rewrite this)
